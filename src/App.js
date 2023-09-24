@@ -1,13 +1,14 @@
 import { Canvas } from '@react-three/fiber';
 import Globel from './Map/Globel';
 import GlobeThreeD from './Map/GlobeThreeD';
-import { useEffect, useState } from 'react';
-import { Form, FormCheck } from 'react-bootstrap';
+import { useState } from 'react';
+import { FormCheck } from 'react-bootstrap';
+
+import { InfinitySpin } from 'react-loader-spinner';
 
 function App() {
 	const [geoJsonTexture, setGeoJsonTexture] = useState(null);
 	const [worldView, setWorldView] = useState(true);
-	const [continentView, setContinentView] = useState(false);
 	const [nightMode, setNightMode] = useState(false);
 	const [clouds, setClouds] = useState(false);
 
@@ -17,9 +18,23 @@ function App() {
 
 	return (
 		<>
+			{!geoJsonTexture && (
+				<div
+					style={{
+						display: 'flex',
+						justifyContent: 'center',
+						alignItems: 'center', // This centers vertically
+						minHeight: '100vh', // Ensures the div takes up the full viewport height
+					}}
+				>
+					<InfinitySpin color='#32fbe2' width='350' />
+					<h3>Loading...</h3>
+				</div>
+			)}
 			<Canvas>
 				<GlobeThreeD geoJsonTexture={geoJsonTexture} clouds={clouds} />
 			</Canvas>
+
 			<Globel
 				onTextureReady={handleTextureReady}
 				worldView={worldView}
@@ -30,19 +45,15 @@ function App() {
 					type='checkbox'
 					checked={worldView}
 					onClick={(e) => {
-						console.log('click');
 						setWorldView(!worldView);
-						setContinentView(false);
 					}}
-					label='World'
+					label='Countries'
 				/>
 				<FormCheck
 					type='checkbox'
-					checked={continentView}
+					checked={!worldView}
 					onClick={(e) => {
-						console.log('click');
-						setContinentView(!continentView);
-						setWorldView(false);
+						setWorldView(!worldView);
 					}}
 					label='Continent'
 				/>
@@ -52,7 +63,6 @@ function App() {
 					type='checkbox'
 					checked={nightMode}
 					onClick={(e) => {
-						console.log('click');
 						setNightMode(!nightMode);
 					}}
 					label='NightMode'
@@ -61,7 +71,6 @@ function App() {
 					type='checkbox'
 					checked={clouds}
 					onClick={(e) => {
-						console.log('click');
 						setClouds(!clouds);
 					}}
 					label='Add Clouds'

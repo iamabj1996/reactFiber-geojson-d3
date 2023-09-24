@@ -1,29 +1,14 @@
 import React, { useRef, useEffect, useState } from 'react';
 import * as d3 from 'd3-geo';
 import * as THREE from 'three';
-import { useFrame, useThree } from '@react-three/fiber';
-
-// Assuming you have imported your GeoJSON data as WORLD_JSON
-// Import your GeoJSON data here if not already done
 import { worldJson } from '../WorldGeoJson';
 import { continentGeoJson } from '../ContinentGeoJson';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
 
-// Return texture created from canvas choropleth
 const Globel = ({ onTextureReady, worldView, nightMode }) => {
-	console.log('nightMode', nightMode);
 	const [geoJsonTexture, setGeoJsonTexture] = useState();
-	// Create a canvas element and save a reference
-	const CANVAS_WIDTH = 2000; // Define your canvas width
-	const CANVAS_HEIGHT = 1000; // Define your canvas height
-	const PROJECTION_AR = 2; // Define your projection aspect ratio
-
-	console.log('worldView2', worldView);
-
-	// const COLOR_SCALE = d3.scaleSequential(d3.interpolateViridis); // Define your color scale
-
-	// Initialize the D3 geo projection for the canvas
+	const CANVAS_WIDTH = 2000;
+	const CANVAS_HEIGHT = 1000;
+	const PROJECTION_AR = 2;
 	const PROJECTION = d3
 		.geoEquirectangular()
 		.translate([CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2])
@@ -33,8 +18,6 @@ const Globel = ({ onTextureReady, worldView, nightMode }) => {
 
 	// Assuming you have your data ready, you can define DATA as needed
 	const canvasRef = useRef();
-	const threeCanvasRef = useRef();
-	const orbitControlsRef = useRef();
 
 	useEffect(() => {
 		// Get 2D context of the canvas
@@ -62,8 +45,6 @@ const Globel = ({ onTextureReady, worldView, nightMode }) => {
 				const centroid = path.centroid(d);
 				const countryName = d.properties.name;
 
-				console.log(d.properties.continent);
-
 				context.font = '7px Arial';
 				context.fillStyle = 'black';
 				context.textAlign = 'center';
@@ -87,8 +68,6 @@ const Globel = ({ onTextureReady, worldView, nightMode }) => {
 				const centroid = path.centroid(d);
 				const countryName = d.properties.CONTINENT;
 
-				console.log(d.properties.continent);
-
 				context.font = '7px Arial';
 				context.fillStyle = 'black';
 				context.textAlign = 'center';
@@ -104,7 +83,6 @@ const Globel = ({ onTextureReady, worldView, nightMode }) => {
 		onTextureReady(texture);
 	}, [worldView, nightMode]);
 
-	// Return the canvas element
 	return (
 		<>
 			<canvas
@@ -112,9 +90,6 @@ const Globel = ({ onTextureReady, worldView, nightMode }) => {
 				width={CANVAS_WIDTH}
 				height={CANVAS_HEIGHT}
 				style={{ display: 'none' }}
-				onClick={(e) => {
-					console.log('onClick clicked', canvasRef.current);
-				}}
 			/>
 		</>
 	);
