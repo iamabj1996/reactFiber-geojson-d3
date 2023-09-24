@@ -1,1 +1,0 @@
-{"version":3,"file":"static/css/main.dd758116.css","mappings":"AAAA,gBAGC,YAAa,CACb,QAAS,CAET,aAAc,CADd,SAID","sources":["index.css"],"sourcesContent":["html,\nbody,\n#root {\n\theight: 100vh;\n\tmargin: 0;\n\tpadding: 0;\n\toverflow: none;\n\t/* top: 0;\n\tleft: 0; */\n}\n"],"names":[],"sourceRoot":""}
