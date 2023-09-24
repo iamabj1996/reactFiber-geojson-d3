@@ -1,41 +1,77 @@
-import { OrbitControls, TransformControls } from '@react-three/drei';
-import { useFrame, useThree } from '@react-three/fiber';
 import React, { useEffect, useRef } from 'react';
+import { OrbitControls } from '@react-three/drei';
+import { useFrame, useThree } from '@react-three/fiber';
 import {
-	Vector3,
+	Color,
 	Points,
 	PointsMaterial,
 	BufferGeometry,
 	Float32BufferAttribute,
-	Color,
+	ShaderMaterial,
+	SphereGeometry,
+	Mesh,
+	MathUtils,
 } from 'three';
+import * as THREE from 'three';
 
-const GlobeThreeD = ({ geoJsonTexture }) => {
+// Define your cloud vertex shader
+const cloudVertexShader = `
+  varying vec3 vPosition;
+
+  void main() {
+    vPosition = position;
+    vec4 modelViewPosition = modelViewMatrix * vec4(position, 1.0);
+    gl_Position = projectionMatrix * modelViewPosition;
+  }
+`;
+
+// Define your cloud fragment shader
+const cloudFragmentShader = `
+  uniform float time;
+  varying vec3 vPosition;
+
+  void main() {
+    // Create cloud-like noise based on position and time
+    float cloudNoise = fract(sin(dot(vPosition, vec3(12.9898, 78.233, 45.543))) * 43758.5453);
+
+    // Adjust cloud transparency based on noise
+    float alpha = cloudNoise * 0.2; // You can adjust this value for opacity
+
+    // Cloud color (white)
+    vec3 cloudColor = vec3(1.0);
+
+    // Combine cloud color with background color based on alpha
+    vec3 finalColor = mix(cloudColor, vec3(0.0), alpha);
+
+    gl_FragColor = vec4(finalColor, alpha);
+  }
+`;
+
+const GlobeThreeD = ({ geoJsonTexture, clouds }) => {
 	const orbitControlRef = useRef();
 	const sphereMesh = useRef();
+	const cloudsMesh = useRef(); // Ref for clouds mesh
 	const { camera, scene } = useThree();
 
-	// Set the initial camera position and look at point
 	useEffect(() => {
-		camera.position.set(0, -2, 12);
+		camera.position.set(0, -2, 11);
 		camera.rotation.y = Math.PI / 4;
 		camera.lookAt(sphereMesh.current.position);
 	}, [camera]);
 
 	useFrame((data) => {
+		// Rotate the sphere
 		// sphereMesh.current.rotation.y += data.clock.elapsedTime * 0.0002;
-		console.log('camera', camera);
 	});
 
 	useEffect(() => {
 		orbitControlRef.current.minPolarAngle = Math.PI * 0.1;
 		orbitControlRef.current.maxPolarAngle = Math.PI * 0.9;
-		orbitControlRef.current.minDistance = 6; // Minimum zoom-in distance
-		orbitControlRef.current.maxDistance = 12; // Maximum zoom-out distance (4 times initial distance)
+		orbitControlRef.current.minDistance = 6;
+		orbitControlRef.current.maxDistance = 12;
 		orbitControlRef.current.camera = sphereMesh.current.position;
-		console.log('orbitControlRef', orbitControlRef.current);
 
-		const starCount = 1000;
+		const starCount = 2000;
 		const starPositions = [];
 		const starGeometry = new BufferGeometry();
 
@@ -51,7 +87,6 @@ const GlobeThreeD = ({ geoJsonTexture }) => {
 			new Float32BufferAttribute(starPositions, 3)
 		);
 
-		// Create random colors for the stars
 		const starColors = [];
 		const starMaterial = new PointsMaterial({ size: 0.02 });
 
@@ -65,12 +100,41 @@ const GlobeThreeD = ({ geoJsonTexture }) => {
 			new Float32BufferAttribute(starColors, 3)
 		);
 
-		starMaterial.vertexColors = true; // Enable vertex colors
+		starMaterial.vertexColors = true;
 		const stars = new Points(starGeometry, starMaterial);
 		scene.add(stars);
 
 		scene.background = new Color(0x000000);
-	}, [scene]);
+
+		// Add or remove clouds based on the 'clouds' prop
+		if (clouds) {
+			const clouds = createClouds();
+			cloudsMesh.current = clouds;
+			scene.add(clouds);
+		} else {
+			if (cloudsMesh.current) {
+				scene.remove(cloudsMesh.current);
+			}
+		}
+	}, [scene, clouds]);
+
+	// Function to create the clouds
+	const createClouds = () => {
+		const cloudGeometry = new SphereGeometry(4, 32, 32);
+
+		// Cloud shader material
+		const cloudsMaterial = new ShaderMaterial({
+			vertexShader: cloudVertexShader,
+			fragmentShader: cloudFragmentShader,
+			transparent: true,
+			blending: THREE.AdditiveBlending,
+		});
+
+		const clouds = new Mesh(cloudGeometry, cloudsMaterial);
+		clouds.position.copy(sphereMesh.current.position);
+
+		return clouds;
+	};
 
 	return (
 		<>
